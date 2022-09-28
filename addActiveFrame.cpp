@@ -705,7 +705,7 @@ void FullSystem::activatePointsMT()
 			}
 
 			// can activate only if this is true.
-			//2022.09.20 czq
+			//2022.09.20 ziv
 			bool canActivate = (ph->lastTraceStatus == IPS_GOOD
 					|| ph->lastTraceStatus == IPS_SKIPPED
 					|| ph->lastTraceStatus == IPS_BADCONDITION
@@ -715,7 +715,7 @@ void FullSystem::activatePointsMT()
 							// && (ph->idepth_max+ph->idepth_min) > 0;
 							&& (ph->idepth_max+ph->idepth_min) > 0 && !ph->ck;
 
-			//2022.09.20 czq
+			//2022.09.20 ziv
 
 			// if I cannot activate the point, skip it. Maybe also delete it.
 			if(!canActivate)
@@ -947,10 +947,10 @@ void FullSystem::addActiveFrame(ImageAndExposure* image,ImageAndExposure* depthI
     // =========================== make Images / derivatives etc. =========================
 	fh->ab_exposure = image->exposure_time;
 	fh->makeImages(image->image, &Hcalib);
-	//2022.09.20 czq
+	//2022.09.20 ziv
 	fh->makeDepthImages(depthImage->image);
 	// fh->showDepthImages();
-	//2022.09.20 czq
+	//2022.09.20 ziv
 
     measureInit.end();
 
@@ -1635,7 +1635,7 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
     sumFirst /= num;
     sumSecond /= num;
 
-	//2022.09.20 czq
+	//2022.09.20 ziv
     // float rescaleFactor = 1;
 
 	// rescaleFactor = 1 / (sumID / numID);
@@ -1645,7 +1645,7 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
     // firstToNew.translation() /= rescaleFactor;
 
 	SE3 firstToNew = coarseInitializer->thisToNext;
-	//2022.09.20 czq
+	//2022.09.20 ziv
 
 	// randomly sub-select the points I need.
 	float keepPercentage = setting_desiredPointDensity / coarseInitializer->numPoints[0];
@@ -1661,30 +1661,30 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 		Pnt* point = coarseInitializer->points[0]+i;
 		ImmaturePoint* pt = new ImmaturePoint(point->u+0.5f,point->v+0.5f,firstFrame,point->my_type, &Hcalib);
 
-		//2022.09.20 czq
+		//2022.09.20 ziv
 		pt->idepth_min = 1 / (point->mdepth + 0.1);
         pt->idepth_max = 1 / (point->mdepth - 0.1);
         float idepthRGBD = point->midepth;
-		//2022.09.20 czq
+		//2022.09.20 ziv
 
-		//2022.09.20 czq
+		//2022.09.20 ziv
 		// if(!std::isfinite(pt->energyTH)) { delete pt; continue; }
 		if(!std::isfinite(pt->energyTH) || !point->isFromSensor) { delete pt; continue; }  // 点值无穷大
 
 		// pt->idepth_max=pt->idepth_min=1;
-		//2022.09.20 czq
+		//2022.09.20 ziv
 		PointHessian* ph = new PointHessian(pt, &Hcalib);
 		delete pt;
 		if(!std::isfinite(ph->energyTH)) {delete ph; continue;}
 
-		//2022.09.20 czq
+		//2022.09.20 ziv
         // ph->setIdepthScaled(point->iR * rescaleFactor);
 		// ph->setIdepthZero(ph->idepth);
 		ph->setIdepthScaled(idepthRGBD);  //? 为啥设置的是scaled之后的
 		ph->setIdepthZero(idepthRGBD);			//! 设置初始先验值, 还有神奇的求零空间方法
 		ph->hasDepthPrior=true;
 		ph->setPointStatus(PointHessian::ACTIVE);
-		//2022.09.20 czq
+		//2022.09.20 ziv
 
 		firstFrame->pointHessians.push_back(ph);
 		ef->insertPoint(ph);
@@ -1734,7 +1734,7 @@ void FullSystem::makeNewTraces(FrameHessian* newFrame, float* gtDepth)
 		if(selectionMap[i]==0) continue;
 
 		ImmaturePoint* impt = new ImmaturePoint(x,y,newFrame, selectionMap[i], &Hcalib);
-		//2022.09.20 czq
+		//2022.09.20 ziv
 		if(newFrame->dDepth[0][i] > 0)
 		{
 		    impt->idepth_fromSensor = 1.0 / newFrame->dDepth[0][i];
@@ -1742,16 +1742,16 @@ void FullSystem::makeNewTraces(FrameHessian* newFrame, float* gtDepth)
 	    else
 	    {
 	    	impt->idepth_fromSensor = -1.0;
-	    	//2022.09.20 czq
+	    	//2022.09.20 ziv
 	    	//std::cout << "here-1" << std::endl;
 	    	if(frameHessians.size() > 2)
 	    	{
 	    	    estimateDepthArange(impt, newFrame);
 	    	}
 	    	//std::cout << "here-2" << std::endl;
-	    	//2022.09.20 czq
+	    	//2022.09.20 ziv
 	    }
-		//2022.09.20 czq
+		//2022.09.20 ziv
 		if(!std::isfinite(impt->energyTH)) delete impt;
 		else newFrame->immaturePoints.push_back(impt);
 
@@ -1760,7 +1760,7 @@ void FullSystem::makeNewTraces(FrameHessian* newFrame, float* gtDepth)
 
 }
 
-//2022.09.20 czq
+//2022.09.20 ziv
 void FullSystem::estimateDepthArange(ImmaturePoint* impt, FrameHessian* newFrame)
 {
 	FrameHessian* refKeyFrame = frameHessians[frameHessians.size() - 2];
@@ -2010,7 +2010,7 @@ float FullSystem::calculateNCC(std::vector<float> vICur, std::vector<float> vIRe
 
 	return (float)(molecule / denominator);
 }
-//2022.09.20 czq
+//2022.09.20 ziv
 
 void FullSystem::setPrecalcValues()
 {
